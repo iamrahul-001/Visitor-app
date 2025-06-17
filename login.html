@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visitor App Login</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Base styling for the body */
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            overflow: hidden;
+            position: relative;
+            transition: background 0.3s ease;
+        }
+
+        /* Animated background dots */
+        .background-dots {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            background-image: radial-gradient(#4a627a 1px, transparent 1px);
+            background-size: 20px 20px;
+            opacity: 0.1;
+            animation: moveDots 20s linear infinite;
+            transition: background-image 0.3s ease, opacity 0.3s ease;
+        }
+
+        /* Keyframes for background dot animation */
+        @keyframes moveDots {
+            from { background-position: 0 0; }
+            to { background-position: 200px 200px; }
+        }
+
+        /* Styling for the main login container */
+        .login-container {
+            background-color: #1a202c;
+            padding: 3rem;
+            border-radius: 1.5rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            width: 100%;
+            max-width: 450px;
+            text-align: center;
+            position: relative;
+            z-index: 10;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: background-color 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+        }
+
+        /* Styling for the main heading */
+        h2 {
+            color: #e2e8f0;
+            margin-bottom: 2.5rem;
+            font-size: 2.5rem;
+            font-weight: 700;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            transition: color 0.3s ease, text-shadow 0.3s ease;
+        }
+
+        /* Styling for each input group (input + label) */
+        .input-group {
+            position: relative;
+            margin-bottom: 2rem;
+            text-align: left;
+        }
+
+        /* Styling for the floating label */
+        .input-group label {
+            position: absolute;
+            top: 1.2rem;
+            left: 1.2rem;
+            color: #a0aec0;
+            pointer-events: none;
+            transition: all 0.3s ease-in-out;
+            font-size: 1.1rem;
+            z-index: 1;
+        }
+
+        /* Styling for the input fields */
+        .input-group input {
+            width: 100%;
+            padding: 1.2rem 1.2rem;
+            background-color: #2d3748;
+            border: 2px solid #4a5568;
+            border-radius: 0.75rem;
+            outline: none;
+            font-size: 1.25rem;
+            color: #e2e8f0;
+            transition: border-color 0.3s ease-in-out, box-shadow 0.3s ease-in-out, background-color 0.3s ease, color 0.3s ease;
+            position: relative;
+            z-index: 0;
+        }
+
+        /* Input focus and content-filled states for label animation */
+        .input-group input:focus + label,
+        .input-group input:not(:placeholder-shown) + label {
+            top: -0.8rem;
+            left: 1rem;
+            font-size: 0.95rem;
+            color: #63b3ed;
+            background-color: #1a202c;
+            padding: 0 0.4rem;
+            border-radius: 0.25rem;
+            z-index: 2;
+        }
+
+        /* Styling for the submit button */
+        .submit-button {
+            width: 100%;
+            padding: 1.2rem;
+            background: linear-gradient(45deg, #63b3ed 0%, #4299e1 100%);
+            color: white;
+            font-size: 1.4rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 0.75rem;
+            cursor: pointer;
+            transition: all 0.3s ease-in-out;
+            box-shadow: 0 10px 20px -5px rgba(66, 153, 225, 0.4);
+        }
+
+        /* Submit button hover state */
+        .submit-button:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 15px 25px -5px rgba(66, 153, 225, 0.6);
+            background: linear-gradient(45deg, #4299e1 0%, #63b3ed 100%);
+        }
+
+        /* Submit button active (click) state */
+        .submit-button:active {
+            transform: translateY(0);
+            box-shadow: 0 5px 10px -3px rgba(66, 153, 225, 0.2);
+        }
+
+        /* Styling for the robot character container */
+        .robot-container {
+            position: absolute;
+            top: -80px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 15;
+            width: 150px;
+            height: 150px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Styling for robot SVG parts */
+        .robot-head {
+            fill: #a0aec0;
+            stroke: #4a5568;
+            stroke-width: 3px;
+            transition: fill 0.3s ease;
+        }
+
+        .robot-eye {
+            fill: #cbd5e0;
+            transition: fill 0.2s ease, transform 0.2s ease;
+        }
+
+        .robot-pupil {
+            fill: #2b6cb0;
+            transform-origin: center center;
+            transition: transform 0.1s ease-out;
+        }
+
+        .robot-mouth {
+            fill: none;
+            stroke: #2b6cb0;
+            stroke-width: 3px;
+            stroke-linecap: round;
+            transition: d 0.2s ease-out, stroke 0.2s ease-out;
+        }
+
+        /* Custom Modal Overlay */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        .modal-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Custom Modal Content */
+        .modal-content {
+            background-color: #1a202c;
+            padding: 2rem;
+            border-radius: 1rem;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            color: #e2e8f0;
+            max-width: 400px;
+            width: 90%;
+            position: relative;
+            transform: translateY(-20px);
+            transition: transform 0.3s ease-out, background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .modal-overlay.show .modal-content {
+            transform: translateY(0);
+        }
+
+        /* Modal Close Button */
+        .modal-close-button {
+            position: absolute;
+            top: 0.75rem;
+            right: 0.75rem;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: #a0aec0;
+            cursor: pointer;
+            transition: color 0.2s ease;
+        }
+
+        .modal-close-button:hover {
+            color: #e2e8f0;
+        }
+
+        /* Theme Toggle Button */
+        .theme-toggle {
+            position: absolute;
+            top: 1.5rem;
+            right: 1.5rem;
+            background-color: #4a5568;
+            color: #e2e8f0;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            transition: background-color 0.3s ease, color 0.3s ease, transform 0.2s ease;
+            z-index: 20;
+        }
+
+        .theme-toggle:hover {
+            transform: translateY(-2px);
+            background-color: #63b3ed;
+            color: white;
+        }
+
+        .theme-toggle svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        /* Light Mode Styles */
+        body.light-mode {
+            background: linear-gradient(135deg, #e0e7eb 0%, #f0f4f7 100%);
+        }
+
+        body.light-mode .background-dots {
+            background-image: radial-gradient(#a0aec0 1px, transparent 1px);
+            opacity: 0.3;
+        }
+
+        body.light-mode .login-container {
+            background-color: #ffffff;
+            box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.1), 0 8px 8px -4px rgba(0, 0, 0, 0.02);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        body.light-mode h2 {
+            color: #2d3748;
+            text-shadow: none;
+        }
+
+        body.light-mode .input-group label {
+            color: #718096;
+        }
+
+        body.light-mode .input-group input {
+            background-color: #edf2f7;
+            border: 2px solid #cbd5e0;
+            color: #2d3748;
+        }
+
+        body.light-mode .input-group input:focus + label,
+        body.light-mode .input-group input:not(:placeholder-shown) + label {
+            color: #4299e1;
+            background-color: #ffffff;
+        }
+
+        body.light-mode .submit-button {
+            background: linear-gradient(45deg, #4299e1 0%, #3182ce 100%);
+            box-shadow: 0 10px 20px -5px rgba(66, 153, 225, 0.2);
+        }
+
+        body.light-mode .submit-button:hover {
+            box-shadow: 0 15px 25px -5px rgba(66, 153, 225, 0.4);
+            background: linear-gradient(45deg, #3182ce 0%, #4299e1 100%);
+        }
+
+        /* Robot colors in light mode */
+        body.light-mode .robot-head {
+            fill: #718096;
+            stroke: #a0aec0;
+        }
+
+        body.light-mode .robot-eye {
+            fill: #2d3748;
+        }
+
+        body.light-mode .robot-pupil {
+            fill: #a0aec0;
+        }
+
+        body.light-mode .robot-mouth {
+            stroke: #4299e1;
+        }
+
+        body.light-mode .modal-content {
+            background-color: #ffffff;
+            color: #2d3748;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        body.light-mode .modal-close-button {
+            color: #718096;
+        }
+
+        body.light-mode .modal-close-button:hover {
+            color: #2d3748;
+        }
+
+        /* Theme toggle button specific for light mode */
+        body.light-mode .theme-toggle {
+            background-color: #cbd5e0;
+            color: #4a5568;
+        }
+
+        body.light-mode .theme-toggle:hover {
+            background-color: #4299e1;
+            color: white;
+        }
+
+        /* Responsive adjustments for smaller screens */
+        @media (max-width: 600px) {
+            .login-container {
+                padding: 2rem;
+                border-radius: 1rem;
+                max-width: 90%;
+            }
+            h2 {
+                font-size: 2rem;
+                margin-bottom: 2rem;
+            }
+            .input-group label {
+                font-size: 1rem;
+                top: 1rem;
+                left: 1rem;
+            }
+            .input-group input {
+                padding: 1rem 1rem;
+                font-size: 1.1rem;
+            }
+            .input-group input:focus + label,
+            .input-group input:not(:placeholder-shown) + label {
+                top: -0.7rem;
+                left: 0.8rem;
+                font-size: 0.85rem;
+            }
+            .submit-button {
+                padding: 1rem;
+                font-size: 1.2rem;
+            }
+            .robot-container {
+                top: -60px;
+                width: 100px;
+                height: 100px;
+            }
+            .theme-toggle {
+                top: 1rem;
+                right: 1rem;
+                width: 35px;
+                height: 35px;
+            }
+            .theme-toggle svg {
+                width: 18px;
+                height: 18px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="background-dots"></div>
+
+    <div class="login-container">
+        <button id="themeToggle" class="theme-toggle">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-sun">
+                <circle cx="12" cy="12" r="5"></circle>
+                <line x1="12" y1="1" x2="12" y2="3"></line>
+                <line x1="12" y1="21" x2="12" y2="23"></line>
+                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                <line x1="1" y1="12" x2="3" y2="12"></line>
+                <line x1="21" y1="12" x2="23" y2="12"></line>
+                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+            </svg>
+        </button>
+
+        <div class="robot-container">
+            <svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="10" y="20" width="100" height="80" rx="15" ry="15" class="robot-head"/>
+                <rect x="30" y="10" width="5" height="15" rx="2" ry="2" fill="#a0aec0"/>
+                <circle cx="32.5" cy="10" r="5" fill="#e53e3e"/>
+                <rect x="85" y="10" width="5" height="15" rx="2" ry="2" fill="#a0aec0"/>
+                <circle cx="87.5" cy="10" r="5" fill="#e53e3e"/>
+
+                <g class="left-eye">
+                    <rect x="30" y="40" width="20" height="20" rx="5" ry="5" class="robot-eye"/>
+                    <circle cx="40" cy="50" r="5" class="robot-pupil"/>
+                </g>
+                <g class="right-eye">
+                    <rect x="70" y="40" width="20" height="20" rx="5" ry="5" class="robot-eye"/>
+                    <circle cx="80" cy="50" r="5" class="robot-pupil"/>
+                </g>
+                <path d="M 40 75 H 80" class="robot-mouth"/>
+            </svg>
+        </div>
+
+        <h2>Visitor App Access</h2>
+        <form id="loginForm">
+            <div class="input-group">
+                <input type="text" id="username" name="username" placeholder=" " required>
+                <label for="username">Username</label>
+            </div>
+            <div class="input-group">
+                <input type="password" id="password" name="password" placeholder=" " required>
+                <label for="password">Password</label>
+            </div>
+            <button type="submit" class="submit-button" id="loginButton">Authenticate</button>
+        </form>
+    </div>
+
+    <div id="customModal" class="modal-overlay">
+        <div class="modal-content">
+            <button class="modal-close-button" id="closeModalBtn">&times;</button>
+            <h3 id="modalTitle" class="text-xl font-bold mb-4"></h3>
+            <p id="modalMessage" class="text-md"></p>
+        </div>
+    </div>
+
+    <script>
+        // Get references to DOM elements
+        const usernameInput = document.getElementById('username');
+        const passwordInput = document.getElementById('password');
+        const loginForm = document.getElementById('loginForm');
+        const loginButton = document.getElementById('loginButton');
+        const leftPupil = document.querySelector('.left-eye .robot-pupil');
+        const rightPupil = document.querySelector('.right-eye .robot-pupil');
+        const robotMouth = document.querySelector('.robot-mouth');
+        const robotHead = document.querySelector('.robot-head');
+        const robotEyes = document.querySelectorAll('.robot-eye');
+
+        const customModal = document.getElementById('customModal');
+        const closeModalBtn = document.getElementById('closeModalBtn');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalMessage = document.getElementById('modalMessage');
+
+        // Theme Toggle elements
+        const themeToggle = document.getElementById('themeToggle');
+        const body = document.body;
+
+        // Function to display the custom modal with a title and message
+        function showModal(title, message) {
+            modalTitle.textContent = title;
+            modalMessage.textContent = message;
+            customModal.classList.add('show');
+        }
+
+        // Function to hide the custom modal
+        function hideModal() {
+            customModal.classList.remove('show');
+        }
+
+        // Event listener for the modal close button
+        closeModalBtn.addEventListener('click', hideModal);
+        // Event listener to close modal if clicking outside the content
+        customModal.addEventListener('click', (e) => {
+            if (e.target === customModal) {
+                hideModal();
+            }
+        });
+
+        // Function to move robot pupils based on mouse position
+        function movePupils(event, inputElement) {
+            const inputRect = inputElement.getBoundingClientRect();
+            const inputCenterX = inputRect.left + inputRect.width / 2;
+            const inputCenterY = inputRect.top + inputRect.height / 2;
+
+            // Calculate angle between mouse and input center
+            const angle = Math.atan2(event.clientY - inputCenterY, event.clientX - inputCenterX);
+            const maxPupilMove = 3; // Maximum pixel distance for pupil movement
+
+            // Calculate new pupil positions based on angle
+            const pupilX = Math.cos(angle) * maxPupilMove;
+            const pupilY = Math.sin(angle) * maxPupilMove;
+
+            // Apply transform to move pupils
+            leftPupil.style.transform = `translate(${pupilX}px, ${pupilY}px)`;
+            rightPupil.style.transform = `translate(${pupilX}px, ${pupilY}px)`;
+        }
+
+        // Function to reset robot pupil positions to default
+        function resetPupils() {
+            leftPupil.style.transform = `translate(0, 0)`;
+            rightPupil.style.transform = `translate(0, 0)`;
+        }
+
+        // --- Username Input Interactions ---
+        usernameInput.addEventListener('focus', () => {
+            // Add mousemove listener to document when username input is focused
+            document.addEventListener('mousemove', (e) => movePupils(e, usernameInput));
+            robotHead.style.fill = '#63b3ed'; // Robot head lights up (blue)
+            robotEyes.forEach(eye => eye.style.fill = '#81e6d9'); // Eyes glow (teal)
+            robotMouth.setAttribute('d', 'M 40 75 Q 60 85 80 75'); // Happy mouth shape
+        });
+
+        usernameInput.addEventListener('blur', () => {
+            // Remove mousemove listener when username input loses focus
+            document.removeEventListener('mousemove', (e) => movePupils(e, usernameInput));
+            resetPupils(); // Reset pupil position
+            robotHead.style.fill = '#a0aec0'; // Robot head back to normal (gray)
+            robotEyes.forEach(eye => eye.style.fill = '#cbd5e0'); // Eyes back to normal (light gray)
+            robotMouth.setAttribute('d', 'M 40 75 H 80'); // Straight mouth
+        });
+
+        usernameInput.addEventListener('input', () => {
+            // Subtle mouth reaction when typing in username
+            if (usernameInput.value.length > 0) {
+                robotMouth.setAttribute('d', 'M 40 75 Q 60 80 80 75'); // Slight smile
+            } else {
+                robotMouth.setAttribute('d', 'M 40 75 H 80'); // Straight mouth
+            }
+        });
+
+        // --- Password Input Interactions ---
+        passwordInput.addEventListener('focus', () => {
+            // Robot eyes narrow and mouth straightens, as if concentrating or being secretive
+            leftPupil.style.transform = `scaleY(0.7)`;
+            rightPupil.style.transform = `scaleY(0.7)`;
+            robotMouth.setAttribute('d', 'M 40 78 H 80'); // Flat mouth, slightly lower
+            robotHead.style.fill = '#f6ad55'; // Head turns orange (thinking/warning)
+        });
+
+        passwordInput.addEventListener('blur', () => {
+            resetPupils(); // Reset pupil position
+            robotMouth.setAttribute('d', 'M 40 75 H 80'); // Mouth back to straight
+            robotHead.style.fill = '#a0aec0'; // Head back to normal
+        });
+
+        passwordInput.addEventListener('input', () => {
+            // Robot mouth and eye color react to password length/strength
+            const passwordLength = passwordInput.value.length;
+            if (passwordLength < 4 && passwordLength > 0) {
+                robotMouth.setAttribute('d', 'M 40 75 Q 60 70 80 75'); // Frown for short password
+                robotEyes.forEach(eye => eye.style.fill = '#fc8181'); // Red eyes for weak
+            } else if (passwordLength >= 4 && passwordLength < 8) {
+                robotMouth.setAttribute('d', 'M 40 75 H 80'); // Neutral for medium
+                robotEyes.forEach(eye => eye.style.fill = '#ecc94b'); // Yellow eyes for medium
+            } else if (passwordLength >= 8) {
+                robotMouth.setAttribute('d', 'M 40 75 Q 60 85 80 75'); // Happy smile for strong
+                robotEyes.forEach(eye => eye.style.fill = '#68d391'); // Green eyes for strong
+            } else {
+                robotMouth.setAttribute('d', 'M 40 78 H 80'); // Flat mouth when empty
+                robotEyes.forEach(eye => eye.style.fill = '#cbd5e0'); // Default eye color
+            }
+        });
+
+        // --- Handle Form Submission ---
+        loginForm.addEventListener('submit', async (event) => {
+            event.preventDefault(); // Prevent the browser's default form submission
+
+            const username = usernameInput.value;
+            const password = passwordInput.value;
+
+            // Disable the login button and show a loading state
+            loginButton.disabled = true;
+            loginButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Authenticating...';
+            loginButton.style.opacity = '0.7';
+
+            try {
+                // Send the login credentials to the backend
+                const response = await fetch('/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ username, password }),
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    // If login was successful and the backend provided a redirect URL
+                    showModal('Login Successful!', 'Welcome to the Visitor Management System!');
+                    
+                    // Wait a short moment to allow the user to see the success message
+                    setTimeout(() => {
+                        window.location.href = result.redirect; // Redirect to the main app
+                    }, 1500);
+                } else {
+                    // If login failed
+                    showModal('Login Failed', result.message || 'Invalid username or password');
+                    loginButton.classList.add('shake');
+                    setTimeout(() => loginButton.classList.remove('shake'), 500);
+                }
+            } catch (error) {
+                // Catch any network errors
+                console.error('Login error:', error);
+                showModal('Login Error', 'Could not connect to the login server. Please try again later.');
+            } finally {
+                // Always re-enable the button and reset its text
+                loginButton.disabled = false;
+                loginButton.innerHTML = 'Authenticate';
+                loginButton.style.opacity = '1';
+            }
+        });
+
+        // --- Theme Switching Logic ---
+        // Function to set the theme (light or dark)
+        function setTheme(theme) {
+            if (theme === 'light') {
+                body.classList.add('light-mode');
+                // Change button icon to moon for dark mode
+                themeToggle.innerHTML = `
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-moon">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                `;
+            } else {
+                body.classList.remove('light-mode');
+                // Change button icon to sun for light mode
+                themeToggle.innerHTML = `
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-sun">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                `;
+            }
+            localStorage.setItem('theme', theme); // Save theme preference
+        }
+
+        // Check for saved theme preference on load
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme) {
+            setTheme(savedTheme);
+        } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
+            // Check for system preference if no saved theme
+            setTheme('light');
+        } else {
+            setTheme('dark'); // Default to dark mode
+        }
+
+        // Toggle theme on button click
+        themeToggle.addEventListener('click', () => {
+            if (body.classList.contains('light-mode')) {
+                setTheme('dark');
+            } else {
+                setTheme('light');
+            }
+        });
+    </script>
+</body>
+</html>

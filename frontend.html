@@ -1,0 +1,1333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Visitor Management</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2980b9;
+            --accent-color: #e74c3c;
+            --dark-color: #2c3e50;
+            --light-color: #ecf0f1;
+            --success-color: #2ecc71;
+            --warning-color: #f39c12;
+            --danger-color: #e74c3c;
+            --card-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: #f5f7fa;
+            color: var(--dark-color);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 100%;
+            margin: 0 auto;
+            padding: 0;
+        }
+
+        .header-bar {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 1rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .header-text {
+            flex: 1;
+        }
+
+        .header-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 0.3rem;
+        }
+
+        .header-time {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .logout-btn {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-size: 0.9rem;
+            padding: 0.5rem;
+            border-radius: 4px;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .logout-btn:hover {
+            background-color: rgba(255,255,255,0.2);
+        }
+
+        .app-container {
+            padding: 1rem;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .tabs-container {
+            display: flex;
+            background-color: white;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 1rem;
+            box-shadow: var(--card-shadow);
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 1rem;
+            text-align: center;
+            border: none;
+            background: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: #7f8c8d;
+            cursor: pointer;
+            transition: var(--transition);
+            position: relative;
+        }
+
+        .tab-btn.active {
+            color: var(--primary-color);
+        }
+
+        .tab-btn.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 50%;
+            height: 3px;
+            background-color: var(--primary-color);
+            border-radius: 3px 3px 0 0;
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .card {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: var(--card-shadow);
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            transition: var(--transition);
+        }
+
+        .card:active {
+            transform: scale(0.98);
+        }
+
+        .card-title {
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .search-container {
+            margin-bottom: 1rem;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: var(--transition);
+            background-color: #f9f9f9;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            background-color: white;
+            box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: var(--transition);
+            background-color: #f9f9f9;
+            -webkit-appearance: none;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            background-color: white;
+            box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+        }
+
+        .photo-options {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .photo-btn {
+            flex: 1;
+            padding: 0.8rem;
+            border: none;
+            border-radius: 8px;
+            background-color: #f1f1f1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .photo-btn:active {
+            transform: scale(0.95);
+        }
+
+        .photo-btn.camera {
+            background-color: #e3f2fd;
+            color: var(--primary-color);
+        }
+
+        .photo-btn.gallery {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .photo-preview-container {
+            position: relative;
+            margin-bottom: 1rem;
+        }
+
+        .photo-preview {
+            width: 100%;
+            max-height: 200px;
+            object-fit: cover;
+            border-radius: 8px;
+            display: none;
+            box-shadow: var(--card-shadow);
+        }
+
+        .remove-photo {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: rgba(231, 76, 60, 0.8);
+            color: white;
+            border: none;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            opacity: 0;
+            transition: var(--transition);
+        }
+
+        .photo-preview-container:hover .remove-photo {
+            opacity: 1;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 1rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:active {
+            background-color: var(--secondary-color);
+        }
+
+        .btn-secondary {
+            background-color: #f1f1f1;
+            color: var(--dark-color);
+        }
+
+        .btn-secondary:active {
+            background-color: #e0e0e0;
+        }
+
+        .visitor-list {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+
+        .visitor-card {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: var(--card-shadow);
+            padding: 1rem;
+            transition: var(--transition);
+        }
+
+        .visitor-card:active {
+            transform: scale(0.98);
+        }
+
+        .visitor-photo {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            transition: var(--transition);
+            cursor: pointer;
+        }
+
+        .visitor-details {
+            margin-bottom: 1rem;
+        }
+
+        .visitor-details p {
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .visitor-details strong {
+            color: var(--dark-color);
+        }
+
+        .visitor-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .visitor-actions .btn {
+            padding: 0.7rem;
+            font-size: 0.9rem;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .badge-success {
+            background-color: rgba(46, 204, 113, 0.2);
+            color: var(--success-color);
+        }
+
+        .badge-warning {
+            background-color: rgba(243, 156, 18, 0.2);
+            color: var(--warning-color);
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .page-btn {
+            padding: 0.5rem 0.8rem;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: white;
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: 0.9rem;
+        }
+
+        .page-btn.active {
+            background-color: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .page-btn:active:not(.active) {
+            background-color: #f0f0f0;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 2rem;
+            color: #7f8c8d;
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            color: #bdc3c7;
+            margin-bottom: 1rem;
+        }
+
+        .empty-state h3 {
+            margin-bottom: 0.5rem;
+            color: var(--dark-color);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .modal img {
+            max-width: 90%;
+            max-height: 90%;
+            border-radius: 5px;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            color: white;
+            font-size: 2rem;
+            cursor: pointer;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .shake {
+            animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+        }
+
+        @keyframes shake {
+            10%, 90% { transform: translateX(-1px); }
+            20%, 80% { transform: translateX(2px); }
+            30%, 50%, 70% { transform: translateX(-4px); }
+            40%, 60% { transform: translateX(4px); }
+        }
+
+        .pulse {
+            animation: pulse 0.5s ease;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .notification {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            right: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            color: white;
+            background-color: var(--success-color);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 1000;
+            animation: fadeIn 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .notification.error {
+            background-color: var(--danger-color);
+        }
+
+        @media (max-width: 400px) {
+            .header-title {
+                font-size: 1rem;
+            }
+            .header-time {
+                font-size: 0.8rem;
+            }
+            .tab-btn {
+                padding: 0.8rem 0.5rem;
+                font-size: 0.8rem;
+            }
+            .card {
+                padding: 1rem;
+            }
+            .logout-btn {
+                padding: 0.3rem;
+                font-size: 0.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header-bar">
+        <div class="header-content">
+            <div class="header-text">
+                <div class="header-title">Visitor Management System</div>
+                <div class="header-time" id="currentDateTime"></div>
+            </div>
+            <button id="logoutBtn" class="logout-btn">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </button>
+        </div>
+    </div>
+
+    <div class="app-container">
+        <div class="tabs-container">
+            <button class="tab-btn active" data-tab="checkin">
+                <i class="fas fa-user-plus"></i> Check-In
+            </button>
+            <button class="tab-btn" data-tab="current">
+                <i class="fas fa-users"></i> Current
+            </button>
+            <button class="tab-btn" data-tab="history">
+                <i class="fas fa-history"></i> History
+            </button>
+        </div>
+
+        <!-- Check-In Tab -->
+        <div id="checkin" class="tab-content active">
+            <div class="card">
+                <h2 class="card-title"><i class="fas fa-user-plus"></i> New Visitor</h2>
+                <form id="checkinForm">
+                    <div class="form-group">
+    <label for="fullName">Full Name</label>
+    <input type="text" id="fullName" name="fullName" required>
+</div>
+<div class="form-group">
+    <label for="phoneNumber">Phone Number</label>
+    <input type="tel" id="phoneNumber" name="phoneNumber" required 
+           pattern="[0-9]{10}" title="Please enter a 10-digit phone number">
+</div>
+<div class="form-group">
+    <label for="personToMeet">Department Visiting</label>
+    <select id="personToMeet" name="personToMeet" required>
+        <option value="">Loading persons...</option>
+    </select>
+</div>
+                    <div class="form-group">
+                        <label for="purposeOfVisit">Purpose of Visit</label>
+                        <select id="purposeOfVisit" name="purposeOfVisit" required>
+                            <option value="Official" selected>Official</option>
+                            <option value="Meeting">Meeting</option>
+                            <option value="Interview">Interview</option>
+                            <option value="Delivery">Delivery</option>
+                            <option value="Business Discussion">Business Discussion</option>
+                            <option value="Service/Maintenance">Service/Maintenance</option>
+                            <option value="Sales Call">Sales Call</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Visitor Photo</label>
+                        <div class="photo-options">
+                            <button type="button" class="photo-btn camera" id="takePhotoBtn">
+                                <i class="fas fa-camera"></i> Camera
+                            </button>
+                            <button type="button" class="photo-btn gallery" id="uploadPhotoBtn">
+                                <i class="fas fa-images"></i> Gallery
+                            </button>
+                        </div>
+                        <div class="photo-preview-container">
+                            <img id="photoPreview" class="photo-preview" alt="Visitor photo preview">
+                            <button type="button" class="remove-photo" id="removePhotoBtn">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <input type="file" id="visitorPhoto" name="visitorPhoto" accept="image/*" capture="environment" style="display: none;">
+                    </div>
+                    <button type="submit" class="btn btn-primary" id="checkinBtn">
+                        <i class="fas fa-check-circle"></i> Check-In Visitor
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Current Visitors Tab -->
+        <div id="current" class="tab-content">
+            <div class="card">
+                <h2 class="card-title"><i class="fas fa-users"></i> Current Visitors</h2>
+                <div class="search-container">
+                    <input type="text" id="currentSearch" class="search-input" placeholder="Search current visitors...">
+                </div>
+                <div id="currentVisitorsList" class="visitor-list">
+                    <!-- Current visitors will be loaded here -->
+                </div>
+                <div id="currentEmptyState" class="empty-state" style="display: none;">
+                    <i class="fas fa-user-slash"></i>
+                    <h3>No Current Visitors</h3>
+                    <p>There are no visitors currently checked in.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Visitor History Tab -->
+        <div id="history" class="tab-content">
+            <div class="card">
+                <h2 class="card-title"><i class="fas fa-history"></i> Visitor History</h2>
+                <div class="search-container">
+                    <input type="text" id="historySearch" class="search-input" placeholder="Search visitor history...">
+                </div>
+                <div id="visitorHistoryList" class="visitor-list">
+                    <!-- Visitor history will be loaded here -->
+                </div>
+                <div id="historyEmptyState" class="empty-state" style="display: none;">
+                    <i class="fas fa-book"></i>
+                    <h3>No Visitor Records</h3>
+                    <p>The visitor log is currently empty.</p>
+                </div>
+                <div class="pagination" id="paginationControls">
+                    <!-- Pagination controls will be added here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Image Modal -->
+    <div class="modal" id="imageModal">
+        <span class="close-modal">&times;</span>
+        <img id="modalImage" src="" alt="Enlarged visitor photo">
+    </div>
+
+   <script>
+        // Check auth status on page load
+        fetch('/api/auth/status', { credentials: 'include' })
+          .then(res => res.json())
+          .then(data => {
+            if (!data.authenticated && window.location.pathname !== '/') {
+              window.location.href = '/';
+            } else {
+              // Load persons to meet after auth check
+              loadPersonsToMeet();
+            }
+          })
+          .catch(() => {
+            if (window.location.pathname !== '/') {
+              window.location.href = '/';
+            }
+          });
+          
+        // Function to load persons to meet from database
+async function loadPersonsToMeet() {
+    try {
+        const response = await fetch('/api/persons-to-meet', { credentials: 'include' });
+        const persons = await response.json();
+        
+        const select = document.getElementById('personToMeet');
+        select.innerHTML = '<option value="">Select department</option>';
+        
+        // Create a map to store unique departments
+        const departmentMap = new Map();
+        
+        persons.forEach(person => {
+            // Use department as both value and display text
+            departmentMap.set(person.department, person.department);
+        });
+        
+        // Add sorted departments to the dropdown
+        Array.from(departmentMap.keys()).sort().forEach(department => {
+            const option = document.createElement('option');
+            option.value = department;
+            option.textContent = department;
+            select.appendChild(option);
+        });
+        
+        // Also load initial data if we're authenticated
+        if (document.querySelector('.tab-content.active').id === 'current') {
+            loadCurrentVisitors();
+        } else if (document.querySelector('.tab-content.active').id === 'history') {
+            loadVisitorHistory();
+        }
+    } catch (error) {
+        console.error('Error loading persons to meet:', error);
+        const select = document.getElementById('personToMeet');
+        select.innerHTML = '<option value="">Error loading departments</option>';
+    }
+}
+          
+        document.addEventListener('DOMContentLoaded', function() {
+            // Update date and time display
+            function updateDateTime() {
+                const now = new Date();
+                const options = { 
+                    weekday: 'long', 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                    hour12: true
+                };
+                document.getElementById('currentDateTime').textContent = now.toLocaleDateString('en-US', options);
+            }
+            updateDateTime();
+            setInterval(updateDateTime, 1000);
+    
+            // Logout functionality
+            const logoutBtn = document.getElementById('logoutBtn');
+            logoutBtn.addEventListener('click', async function() {
+                try {
+                    const response = await fetch('/logout', {
+                        method: 'POST',
+                        credentials: 'include'
+                    });
+                    
+                    if (response.ok) {
+                        window.location.href = '/';
+                    } else {
+                        showNotification('Logout failed. Please try again.', 'error');
+                    }
+                } catch (error) {
+                    console.error('Logout error:', error);
+                    showNotification('Network error during logout', 'error');
+                }
+            });
+    
+            // Tab switching
+            const tabBtns = document.querySelectorAll('.tab-btn');
+            const tabContents = document.querySelectorAll('.tab-content');
+    
+            tabBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    tabBtns.forEach(b => b.classList.remove('active'));
+                    tabContents.forEach(c => c.classList.remove('active'));
+                    
+                    this.classList.add('active');
+                    const tabId = this.getAttribute('data-tab');
+                    document.getElementById(tabId).classList.add('active');
+                    
+                    if (tabId === 'current') {
+                        loadCurrentVisitors();
+                    } else if (tabId === 'history') {
+                        loadVisitorHistory();
+                    }
+                });
+            });
+    
+            // Photo upload functionality
+            const takePhotoBtn = document.getElementById('takePhotoBtn');
+            const uploadPhotoBtn = document.getElementById('uploadPhotoBtn');
+            const visitorPhotoInput = document.getElementById('visitorPhoto');
+            const photoPreview = document.getElementById('photoPreview');
+            const removePhotoBtn = document.getElementById('removePhotoBtn');
+    
+            takePhotoBtn.addEventListener('click', function() {
+                visitorPhotoInput.setAttribute('capture', 'environment');
+                visitorPhotoInput.click();
+            });
+    
+            uploadPhotoBtn.addEventListener('click', function() {
+                visitorPhotoInput.removeAttribute('capture');
+                visitorPhotoInput.click();
+            });
+    
+            visitorPhotoInput.addEventListener('change', function(e) {
+                if (e.target.files.length > 0) {
+                    const file = e.target.files[0];
+                    const reader = new FileReader();
+                    
+                    reader.onload = function(event) {
+                        photoPreview.src = event.target.result;
+                        photoPreview.style.display = 'block';
+                        photoPreview.classList.add('pulse');
+                        setTimeout(() => photoPreview.classList.remove('pulse'), 500);
+                    };
+                    
+                    reader.readAsDataURL(file);
+                }
+            });
+    
+            removePhotoBtn.addEventListener('click', function() {
+                photoPreview.src = '';
+                photoPreview.style.display = 'none';
+                visitorPhotoInput.value = '';
+                this.classList.add('shake');
+                setTimeout(() => this.classList.remove('shake'), 500);
+            });
+    
+            // Image modal for enlarging photos
+            const modal = document.getElementById('imageModal');
+            const modalImg = document.getElementById('modalImage');
+            const closeModal = document.querySelector('.close-modal');
+    
+            document.addEventListener('click', function(e) {
+                if (e.target.classList.contains('visitor-photo')) {
+                    modal.style.display = 'flex';
+                    modalImg.src = e.target.src;
+                }
+            });
+    
+            closeModal.addEventListener('click', function() {
+                modal.style.display = 'none';
+            });
+    
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) {
+                    modal.style.display = 'none';
+                }
+            });
+    
+            // Check-in form submission
+            const checkinForm = document.getElementById('checkinForm');
+            const checkinBtn = document.getElementById('checkinBtn');
+    
+           checkinForm.addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData();
+    formData.append('fullName', document.getElementById('fullName').value);
+    formData.append('personToMeet', document.getElementById('personToMeet').value);
+    formData.append('purposeOfVisit', document.getElementById('purposeOfVisit').value);
+    formData.append('phoneNumber', document.getElementById('phoneNumber').value); // Add this line
+    
+    if (visitorPhotoInput.files.length > 0) {
+        formData.append('visitorPhoto', visitorPhotoInput.files[0]);
+    }
+
+    // Validate phone number format
+    const phoneNumber = document.getElementById('phoneNumber').value;
+    if (!/^\d{10}$/.test(phoneNumber)) {
+        showNotification('Please enter a valid 10-digit phone number', 'error');
+        return;
+    }
+
+    checkinBtn.disabled = true;
+    checkinBtn.innerHTML = '<span class="spinner"></span> Processing...';
+    
+                try {
+                    const response = await fetch('/api/checkin', {
+                        method: 'POST',
+                        body: formData,
+                        credentials: 'include'
+                    });
+    
+                    // Check if response is JSON
+                    const contentType = response.headers.get('content-type');
+                    let data;
+                    if (contentType && contentType.includes('application/json')) {
+                        data = await response.json();
+                    } else {
+                        const text = await response.text();
+                        throw new Error(text || 'Invalid server response');
+                    }
+    
+                    if (response.ok) {
+                        showNotification(`${data.message} ${data.personToMeet} has been notified by email.`, 'success');
+                        checkinForm.reset();
+                        photoPreview.style.display = 'none';
+                        photoPreview.src = '';
+                        visitorPhotoInput.value = '';
+                        
+                        document.querySelector('.tab-btn[data-tab="current"]').click();
+                    } else {
+                        throw new Error(data.message || 'Error checking in visitor');
+                    }
+                } catch (error) {
+                    console.error('Check-in error:', error);
+                    showNotification(error.message || 'Network error. Please try again.', 'error');
+                    
+                    // If unauthorized, redirect to login
+                    if (error.message.includes('login') || error.message.includes('<!DOCTYPE')) {
+                        window.location.href = '/';
+                    }
+                } finally {
+                    checkinBtn.disabled = false;
+                    checkinBtn.innerHTML = '<i class="fas fa-check-circle"></i> Check-In Visitor';
+                }
+            });
+    
+            // Current visitors functionality
+            const currentSearch = document.getElementById('currentSearch');
+            const currentVisitorsList = document.getElementById('currentVisitorsList');
+            const currentEmptyState = document.getElementById('currentEmptyState');
+    
+            function debounce(func, timeout = 300) {
+                let timer;
+                return (...args) => {
+                    clearTimeout(timer);
+                    timer = setTimeout(() => { func.apply(this, args); }, timeout);
+                };
+            }
+    
+            currentSearch.addEventListener('input', debounce(function() {
+                loadCurrentVisitors();
+            }));
+    
+            async function loadCurrentVisitors() {
+                try {
+                    const query = currentSearch.value.trim();
+                    let url = '/api/current';
+                    
+                    if (query) {
+                        url = `/api/search?type=current&query=${encodeURIComponent(query)}`;
+                    }
+    
+                    const response = await fetch(url, { credentials: 'include' });
+                    
+                    // Check if response is JSON
+                    const contentType = response.headers.get('content-type');
+                    let visitors;
+                    if (contentType && contentType.includes('application/json')) {
+                        visitors = await response.json();
+                    } else {
+                        const text = await response.text();
+                        throw new Error(text || 'Invalid server response');
+                    }
+    
+                    // Ensure visitors is an array
+                    if (!Array.isArray(visitors)) {
+                        if (visitors && typeof visitors === 'object') {
+                            // Handle case where backend returns { records: [...] }
+                            visitors = visitors.records || [];
+                        } else {
+                            visitors = [];
+                        }
+                    }
+    
+                    if (visitors.length === 0) {
+                        currentVisitorsList.style.display = 'none';
+                        currentEmptyState.style.display = 'block';
+                    } else {
+                        currentVisitorsList.style.display = 'grid';
+                        currentEmptyState.style.display = 'none';
+                        renderCurrentVisitors(visitors);
+                    }
+                } catch (error) {
+                    console.error('Error loading current visitors:', error);
+                    showNotification('Error loading data. Please try again or login.', 'error');
+                    
+                    // If unauthorized, redirect to login
+                    if (error.message.includes('login') || error.message.includes('<!DOCTYPE')) {
+                        window.location.href = '/';
+                    }
+                }
+            }
+    
+            function renderCurrentVisitors(visitors) {
+                currentVisitorsList.innerHTML = '';
+                
+                // Double check that visitors is an array
+                if (!Array.isArray(visitors)) {
+                    console.error('renderCurrentVisitors: Expected array but got', visitors);
+                    currentEmptyState.style.display = 'block';
+                    currentVisitorsList.style.display = 'none';
+                    return;
+                }
+                
+                visitors.forEach(visitor => {
+                    const visitorCard = document.createElement('div');
+                    visitorCard.className = 'visitor-card';
+                    
+                    let photoHtml = '';
+                    if (visitor.VISITOR_PHOTO_PATH) {
+                        photoHtml = `<img src="${visitor.VISITOR_PHOTO_PATH}" class="visitor-photo" alt="Visitor photo">`;
+                    } else {
+                        photoHtml = `<div style="height: 150px; display: flex; align-items: center; justify-content: center; background: #f0f0f0; border-radius: 8px; margin-bottom: 1rem;">
+                                        <i class="fas fa-user" style="font-size: 2rem; color: #ccc;"></i>
+                                    </div>`;
+                    }
+                    
+                    const timeIn = visitor.TIME_IN ? new Date(visitor.TIME_IN).toLocaleString() : 'N/A';
+                    
+                   visitorCard.innerHTML = `
+    ${photoHtml}
+    <div class="visitor-details">
+        <p><strong>Name:</strong> ${visitor.FULL_NAME || 'N/A'}</p>
+        <p><strong>Phone:</strong> ${visitor.PHONE_NUMBER || 'N/A'}</p>
+        <p><strong>Meeting:</strong> ${visitor.PERSON_TO_MEET || 'N/A'}</p>
+        <p><strong>Purpose:</strong> ${visitor.PURPOSE_OF_VISIT || 'N/A'}</p>
+        <p><strong>Time In:</strong> ${timeIn}</p>
+    </div>
+    <div class="visitor-actions">
+        <button class="btn btn-danger checkout-btn" data-id="${visitor.VISITOR_ID}">
+            <i class="fas fa-sign-out-alt"></i> Check Out
+        </button>
+    </div>
+                    `;
+                    
+                    currentVisitorsList.appendChild(visitorCard);
+                });
+    
+                document.querySelectorAll('.checkout-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const visitorId = this.getAttribute('data-id');
+                        checkoutVisitor(visitorId);
+                    });
+                });
+            }
+    
+            async function checkoutVisitor(visitorId) {
+                if (!visitorId) {
+                    showNotification('Invalid visitor ID', 'error');
+                    return;
+                }
+
+                try {
+                    const response = await fetch(`/api/checkout/${visitorId}`, {
+                        method: 'PUT',
+                        credentials: 'include'
+                    });
+                    
+                    // Check if response is JSON
+                    const contentType = response.headers.get('content-type');
+                    let data;
+                    if (contentType && contentType.includes('application/json')) {
+                        data = await response.json();
+                    } else {
+                        const text = await response.text();
+                        throw new Error(text || 'Invalid server response');
+                    }
+
+                    if (response.ok) {
+                        showNotification('Visitor checked out successfully!', 'success');
+                        loadCurrentVisitors();
+                        loadVisitorHistory();
+                    } else {
+                        throw new Error(data.message || 'Error checking out visitor');
+                    }
+                } catch (error) {
+                    console.error('Error checking out visitor:', error);
+                    showNotification(error.message || 'Error checking out visitor', 'error');
+                    
+                    // If unauthorized, redirect to login
+                    if (error.message.includes('login') || error.message.includes('<!DOCTYPE')) {
+                        window.location.href = '/';
+                    }
+                }
+            }
+            
+            // Visitor history functionality
+            const historySearch = document.getElementById('historySearch');
+            const visitorHistoryList = document.getElementById('visitorHistoryList');
+            const historyEmptyState = document.getElementById('historyEmptyState');
+            const paginationControls = document.getElementById('paginationControls');
+    
+            let currentPage = 1;
+            const recordsPerPage = 10;
+    
+            historySearch.addEventListener('input', debounce(function() {
+                currentPage = 1;
+                loadVisitorHistory();
+            }));
+    
+            async function loadVisitorHistory() {
+                try {
+                    const query = historySearch.value.trim();
+                    let url = `/api/allvisitorspaginated?page=${currentPage}&limit=${recordsPerPage}`;
+                    
+                    if (query) {
+                        url = `/api/search?type=history&query=${encodeURIComponent(query)}`;
+                    }
+    
+                    const response = await fetch(url, { credentials: 'include' });
+                    
+                    // Check if response is JSON
+                    const contentType = response.headers.get('content-type');
+                    let data;
+                    if (contentType && contentType.includes('application/json')) {
+                        data = await response.json();
+                    } else {
+                        const text = await response.text();
+                        throw new Error(text || 'Invalid server response');
+                    }
+    
+                    // Handle both paginated and non-paginated responses
+                    let visitors = [];
+                    let totalPages = 1;
+                    
+                    if (data.records) {
+                        // Paginated response
+                        visitors = data.records;
+                        totalPages = data.totalPages || 1;
+                    } else if (Array.isArray(data)) {
+                        // Non-paginated response (search)
+                        visitors = data;
+                        paginationControls.style.display = 'none';
+                    } else {
+                        // Unexpected format
+                        throw new Error('Invalid data format from server');
+                    }
+    
+                    // Ensure visitors is an array
+                    if (!Array.isArray(visitors)) {
+                        visitors = [];
+                    }
+    
+                    if (visitors.length === 0) {
+                        visitorHistoryList.style.display = 'grid';
+                        visitorHistoryList.innerHTML = '';
+                        historyEmptyState.style.display = 'block';
+                        paginationControls.style.display = 'none';
+                    } else {
+                        visitorHistoryList.style.display = 'grid';
+                        historyEmptyState.style.display = 'none';
+                        renderVisitorHistory(visitors);
+                        
+                        // Only show pagination for paginated responses
+                        if (data.records) {
+                            paginationControls.style.display = 'flex';
+                            renderPaginationControls(totalPages, currentPage);
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error loading visitor history:', error);
+                    showNotification('Error loading data. Please try again or login.', 'error');
+                    
+                    // If unauthorized, redirect to login
+                    if (error.message.includes('login') || error.message.includes('<!DOCTYPE')) {
+                        window.location.href = '/';
+                    }
+                }
+            }
+    
+            function renderVisitorHistory(visitors) {
+                visitorHistoryList.innerHTML = '';
+                
+                // Double check that visitors is an array
+                if (!Array.isArray(visitors)) {
+                    console.error('renderVisitorHistory: Expected array but got', visitors);
+                    historyEmptyState.style.display = 'block';
+                    visitorHistoryList.style.display = 'none';
+                    return;
+                }
+                
+                visitors.forEach(visitor => {
+                    const visitorCard = document.createElement('div');
+                    visitorCard.className = 'visitor-card';
+                    
+                    let photoHtml = '';
+                    if (visitor.VISITOR_PHOTO_PATH) {
+                        photoHtml = `<img src="${visitor.VISITOR_PHOTO_PATH}" class="visitor-photo" alt="Visitor photo">`;
+                    } else {
+                        photoHtml = `<div style="height: 150px; display: flex; align-items: center; justify-content: center; background: #f0f0f0; border-radius: 8px; margin-bottom: 1rem;">
+                                        <i class="fas fa-user" style="font-size: 2rem; color: #ccc;"></i>
+                                    </div>`;
+                    }
+                    
+                    const timeIn = visitor.TIME_IN ? new Date(visitor.TIME_IN).toLocaleString() : 'N/A';
+                    let timeOut = 'Not checked out';
+                    let statusBadge = '<span class="badge badge-warning">Checked In</span>';
+                    
+                    if (visitor.TIME_OUT) {
+                        timeOut = new Date(visitor.TIME_OUT).toLocaleString();
+                        statusBadge = '<span class="badge badge-success">Checked Out</span>';
+                    }
+                    
+                  visitorCard.innerHTML = `
+    ${photoHtml}
+    <div class="visitor-details">
+        <p><strong>Name:</strong> ${visitor.FULL_NAME || 'N/A'}</p>
+        <p><strong>Phone:</strong> ${visitor.PHONE_NUMBER || 'N/A'}</p>
+        <p><strong>Meeting:</strong> ${visitor.PERSON_TO_MEET || 'N/A'}</p>
+        <p><strong>Purpose:</strong> ${visitor.PURPOSE_OF_VISIT || 'N/A'}</p>
+        <p><strong>Time In:</strong> ${timeIn}</p>
+        <p><strong>Time Out:</strong> ${timeOut}</p>
+        ${statusBadge}
+    </div>
+                    `;
+                    
+                    visitorHistoryList.appendChild(visitorCard);
+                });
+            }
+    
+            function renderPaginationControls(totalPages, currentPageNum) {
+                paginationControls.innerHTML = '';
+                
+                const prevBtn = document.createElement('button');
+                prevBtn.className = 'page-btn';
+                prevBtn.innerHTML = '<i class="fas fa-chevron-left"></i>';
+                prevBtn.disabled = currentPageNum === 1;
+                prevBtn.addEventListener('click', function() {
+                    if (currentPage > 1) {
+                        currentPage--;
+                        loadVisitorHistory();
+                    }
+                });
+                paginationControls.appendChild(prevBtn);
+                
+                const maxVisiblePages = 5;
+                let startPage = Math.max(1, currentPageNum - Math.floor(maxVisiblePages / 2));
+                let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+                
+                if (endPage - startPage + 1 < maxVisiblePages) {
+                    startPage = Math.max(1, endPage - maxVisiblePages + 1);
+                }
+                
+                if (startPage > 1) {
+                    const firstBtn = document.createElement('button');
+                    firstBtn.className = 'page-btn';
+                    firstBtn.textContent = '1';
+                    firstBtn.addEventListener('click', function() {
+                        currentPage = 1;
+                        loadVisitorHistory();
+                    });
+                    paginationControls.appendChild(firstBtn);
+                    
+                    if (startPage > 2) {
+                        const ellipsis = document.createElement('span');
+                        ellipsis.textContent = '...';
+                        ellipsis.style.padding = '0.5rem 0.8rem';
+                        paginationControls.appendChild(ellipsis);
+                    }
+                }
+                
+                for (let i = startPage; i <= endPage; i++) {
+                    const pageBtn = document.createElement('button');
+                    pageBtn.className = `page-btn ${i === currentPageNum ? 'active' : ''}`;
+                    pageBtn.textContent = i;
+                    pageBtn.addEventListener('click', function() {
+                        currentPage = i;
+                        loadVisitorHistory();
+                    });
+                    paginationControls.appendChild(pageBtn);
+                }
+                
+                if (endPage < totalPages) {
+                    if (endPage < totalPages - 1) {
+                        const ellipsis = document.createElement('span');
+                        ellipsis.textContent = '...';
+                        ellipsis.style.padding = '0.5rem 0.8rem';
+                        paginationControls.appendChild(ellipsis);
+                    }
+                    
+                    const lastBtn = document.createElement('button');
+                    lastBtn.className = 'page-btn';
+                    lastBtn.textContent = totalPages;
+                    lastBtn.addEventListener('click', function() {
+                        currentPage = totalPages;
+                        loadVisitorHistory();
+                    });
+                    paginationControls.appendChild(lastBtn);
+                }
+                
+                const nextBtn = document.createElement('button');
+                nextBtn.className = 'page-btn';
+                nextBtn.innerHTML = '<i class="fas fa-chevron-right"></i>';
+                nextBtn.disabled = currentPageNum === totalPages;
+                nextBtn.addEventListener('click', function() {
+                    if (currentPage < totalPages) {
+                        currentPage++;
+                        loadVisitorHistory();
+                    }
+                });
+                paginationControls.appendChild(nextBtn);
+            }
+    
+            function showNotification(message, type) {
+                const notification = document.createElement('div');
+                notification.className = `notification ${type === 'error' ? 'error' : ''}`;
+                notification.textContent = message;
+                
+                const icon = document.createElement('i');
+                icon.className = type === 'error' ? 'fas fa-exclamation-circle' : 'fas fa-check-circle';
+                notification.prepend(icon);
+                
+                document.body.appendChild(notification);
+                
+                setTimeout(function() {
+                    notification.style.animation = 'fadeOut 0.3s ease';
+                    setTimeout(function() {
+                        notification.remove();
+                    }, 300);
+                }, 3000);
+            }
+    
+            // Load initial data
+            loadCurrentVisitors();
+            loadVisitorHistory();
+        });
+    </script>
+</body>
+</html>
