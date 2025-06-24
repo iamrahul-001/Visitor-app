@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
     <title>Visitor Management</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -27,6 +27,12 @@
             -webkit-tap-highlight-color: transparent;
         }
 
+        .header-bar {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)) !important;
+            -webkit-background-clip: padding-box !important;
+            background-clip: padding-box !important;
+        }
+        
         body {
             background-color: #f5f7fa;
             color: var(--dark-color);
@@ -399,34 +405,6 @@
             color: var(--warning-color);
         }
 
-        .pagination {
-            display: flex;
-            justify-content: center;
-            gap: 0.5rem;
-            margin-top: 1rem;
-            flex-wrap: wrap;
-        }
-
-        .page-btn {
-            padding: 0.5rem 0.8rem;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            background-color: white;
-            cursor: pointer;
-            transition: var(--transition);
-            font-size: 0.9rem;
-        }
-
-        .page-btn.active {
-            background-color: var(--primary-color);
-            color: white;
-            border-color: var(--primary-color);
-        }
-
-        .page-btn:active:not(.active) {
-            background-color: #f0f0f0;
-        }
-
         .empty-state {
             text-align: center;
             padding: 2rem;
@@ -569,10 +547,10 @@
                 <i class="fas fa-user-plus"></i> Check-In
             </button>
             <button class="tab-btn" data-tab="current">
-                <i class="fas fa-users"></i> Current
+                <i class="fas fa-sign-out-alt"></i> Check-Out
             </button>
-            <button class="tab-btn" data-tab="history">
-                <i class="fas fa-history"></i> History
+            <button class="tab-btn" data-tab="planned">
+                <i class="fas fa-calendar-check"></i> Planned Visitors
             </button>
         </div>
 
@@ -582,20 +560,20 @@
                 <h2 class="card-title"><i class="fas fa-user-plus"></i> New Visitor</h2>
                 <form id="checkinForm">
                     <div class="form-group">
-    <label for="fullName">Full Name</label>
-    <input type="text" id="fullName" name="fullName" required>
-</div>
-<div class="form-group">
-    <label for="phoneNumber">Phone Number</label>
-    <input type="tel" id="phoneNumber" name="phoneNumber" required 
-           pattern="[0-9]{10}" title="Please enter a 10-digit phone number">
-</div>
-<div class="form-group">
-    <label for="personToMeet">Department Visiting</label>
-    <select id="personToMeet" name="personToMeet" required>
-        <option value="">Loading persons...</option>
-    </select>
-</div>
+                        <label for="fullName">Full Name</label>
+                        <input type="text" id="fullName" name="fullName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="phoneNumber">Phone Number</label>
+                        <input type="tel" id="phoneNumber" name="phoneNumber" required 
+                               pattern="[0-9]{10}" title="Please enter a 10-digit phone number">
+                    </div>
+                    <div class="form-group">
+                        <label for="personToMeet">Department Visiting</label>
+                        <select id="personToMeet" name="personToMeet" required>
+                            <option value="">Loading departments...</option>
+                        </select>
+                    </div>
                     <div class="form-group">
                         <label for="purposeOfVisit">Purpose of Visit</label>
                         <select id="purposeOfVisit" name="purposeOfVisit" required>
@@ -634,41 +612,38 @@
             </div>
         </div>
 
-        <!-- Current Visitors Tab -->
+        <!-- Check-Out Visitors Tab -->
         <div id="current" class="tab-content">
             <div class="card">
-                <h2 class="card-title"><i class="fas fa-users"></i> Current Visitors</h2>
+                <h2 class="card-title"><i class="fas fa-sign-out-alt"></i> Check-Out Visitors</h2>
                 <div class="search-container">
-                    <input type="text" id="currentSearch" class="search-input" placeholder="Search current visitors...">
+                    <input type="text" id="currentSearch" class="search-input" placeholder="Search visitors to check out...">
                 </div>
                 <div id="currentVisitorsList" class="visitor-list">
                     <!-- Current visitors will be loaded here -->
                 </div>
                 <div id="currentEmptyState" class="empty-state" style="display: none;">
                     <i class="fas fa-user-slash"></i>
-                    <h3>No Current Visitors</h3>
+                    <h3>No Visitors to Check Out</h3>
                     <p>There are no visitors currently checked in.</p>
                 </div>
             </div>
         </div>
 
-        <!-- Visitor History Tab -->
-        <div id="history" class="tab-content">
+        <!-- Planned Visitors Tab -->
+        <div id="planned" class="tab-content">
             <div class="card">
-                <h2 class="card-title"><i class="fas fa-history"></i> Visitor History</h2>
+                <h2 class="card-title"><i class="fas fa-calendar-check"></i> Planned Visitors</h2>
                 <div class="search-container">
-                    <input type="text" id="historySearch" class="search-input" placeholder="Search visitor history...">
+                    <input type="text" id="plannedSearch" class="search-input" placeholder="Search planned visitors...">
                 </div>
-                <div id="visitorHistoryList" class="visitor-list">
-                    <!-- Visitor history will be loaded here -->
+                <div id="plannedVisitorsList" class="visitor-list">
+                    <!-- Planned visitors will be loaded here -->
                 </div>
-                <div id="historyEmptyState" class="empty-state" style="display: none;">
-                    <i class="fas fa-book"></i>
-                    <h3>No Visitor Records</h3>
-                    <p>The visitor log is currently empty.</p>
-                </div>
-                <div class="pagination" id="paginationControls">
-                    <!-- Pagination controls will be added here -->
+                <div id="plannedEmptyState" class="empty-state" style="display: none;">
+                    <i class="fas fa-calendar-times"></i>
+                    <h3>No Planned Visitors</h3>
+                    <p>There are no planned visitors at this time.</p>
                 </div>
             </div>
         </div>
@@ -680,7 +655,7 @@
         <img id="modalImage" src="" alt="Enlarged visitor photo">
     </div>
 
-   <script>
+<script>
         // Check auth status on page load
         fetch('/api/auth/status', { credentials: 'include' })
           .then(res => res.json())
@@ -690,6 +665,7 @@
             } else {
               // Load persons to meet after auth check
               loadPersonsToMeet();
+              loadPlannedVisitors();
             }
           })
           .catch(() => {
@@ -699,42 +675,150 @@
           });
           
         // Function to load persons to meet from database
-async function loadPersonsToMeet() {
-    try {
-        const response = await fetch('/api/persons-to-meet', { credentials: 'include' });
-        const persons = await response.json();
-        
-        const select = document.getElementById('personToMeet');
-        select.innerHTML = '<option value="">Select department</option>';
-        
-        // Create a map to store unique departments
-        const departmentMap = new Map();
-        
-        persons.forEach(person => {
-            // Use department as both value and display text
-            departmentMap.set(person.department, person.department);
-        });
-        
-        // Add sorted departments to the dropdown
-        Array.from(departmentMap.keys()).sort().forEach(department => {
-            const option = document.createElement('option');
-            option.value = department;
-            option.textContent = department;
-            select.appendChild(option);
-        });
-        
-        // Also load initial data if we're authenticated
-        if (document.querySelector('.tab-content.active').id === 'current') {
-            loadCurrentVisitors();
-        } else if (document.querySelector('.tab-content.active').id === 'history') {
-            loadVisitorHistory();
+        async function loadPersonsToMeet() {
+            try {
+                const response = await fetch('/api/persons-to-meet', { 
+                    credentials: 'include',
+                    headers: {
+                        'Cache-Control': 'no-store' // Bypass caching issues
+                    } 
+                });
+                const persons = await response.json();
+                
+                const select = document.getElementById('personToMeet');
+                select.innerHTML = '<option value="">Select department</option>';
+                
+                // Create a map to store unique departments
+                const departmentMap = new Map();
+                
+                persons.forEach(person => {
+                    // Use department as both value and display text
+                    departmentMap.set(person.department, person.department);
+                });
+                
+                // Add sorted departments to the dropdown
+                Array.from(departmentMap.keys()).sort().forEach(department => {
+                    const option = document.createElement('option');
+                    option.value = department;
+                    option.textContent = department;
+                    select.appendChild(option);
+                });
+                
+                // Also load initial data if we're authenticated
+                if (document.querySelector('.tab-content.active').id === 'current') {
+                    loadCurrentVisitors();
+                } else if (document.querySelector('.tab-content.active').id === 'planned') {
+                    loadPlannedVisitors();
+                }
+            } catch (error) {
+                console.error('Error loading persons to meet:', error);
+                const select = document.getElementById('personToMeet');
+                select.innerHTML = '<option value="">Error loading departments</option>';
+            }
         }
-    } catch (error) {
-        console.error('Error loading persons to meet:', error);
-        const select = document.getElementById('personToMeet');
-        select.innerHTML = '<option value="">Error loading departments</option>';
-    }
-}
+        
+        // Function to load planned visitors
+        async function loadPlannedVisitors() {
+            try {
+                const query = document.getElementById('plannedSearch').value.trim();
+                let url = '/api/planned-visitors';
+                
+                if (query) {
+                    url = `/api/search?type=planned&query=${encodeURIComponent(query)}`;
+                }
+                
+                const response = await fetch(url, { credentials: 'include' });
+                const visitors = await response.json();
+                
+                const plannedVisitorsList = document.getElementById('plannedVisitorsList');
+                const plannedEmptyState = document.getElementById('plannedEmptyState');
+                
+                if (!Array.isArray(visitors) || visitors.length === 0) {
+                    plannedVisitorsList.style.display = 'none';
+                    plannedEmptyState.style.display = 'block';
+                } else {
+                    plannedVisitorsList.style.display = 'grid';
+                    plannedEmptyState.style.display = 'none';
+                    renderPlannedVisitors(visitors);
+                }
+            } catch (error) {
+                console.error('Error loading planned visitors:', error);
+                showNotification('Error loading planned visitors. Please try again.', 'error');
+            }
+        }
+        
+        // Function to render planned visitors
+        function renderPlannedVisitors(visitors) {
+            const plannedVisitorsList = document.getElementById('plannedVisitorsList');
+            plannedVisitorsList.innerHTML = '';
+            
+            visitors.forEach(visitor => {
+                const visitorCard = document.createElement('div');
+                visitorCard.className = 'visitor-card';
+                
+                let photoHtml = '';
+                if (visitor.VISITOR_PHOTO_PATH) {
+                    photoHtml = `<img src="${visitor.VISITOR_PHOTO_PATH}" class="visitor-photo" alt="Visitor photo">`;
+                } else {
+                    photoHtml = `<div style="height: 150px; display: flex; align-items: center; justify-content: center; background: #f0f0f0; border-radius: 8px; margin-bottom: 1rem;">
+                                    <i class="fas fa-user" style="font-size: 2rem; color: #ccc;"></i>
+                                </div>`;
+                }
+                
+                const plannedDate = visitor.PLANNED_DATE ? new Date(visitor.PLANNED_DATE).toLocaleString() : 'N/A';
+                
+                visitorCard.innerHTML = `
+                    ${photoHtml}
+                    <div class="visitor-details">
+                        <p><strong>Name:</strong> ${visitor.FULL_NAME || 'N/A'}</p>
+                        <p><strong>Phone:</strong> ${visitor.PHONE_NUMBER || 'N/A'}</p>
+                        <p><strong>Meeting:</strong> ${visitor.PERSON_TO_MEET || 'N/A'}</p>
+                        <p><strong>Purpose:</strong> ${visitor.PURPOSE_OF_VISIT || 'N/A'}</p>
+                        <p><strong>Planned Date:</strong> ${plannedDate}</p>
+                    </div>
+                    <div class="visitor-actions">
+                        <button class="btn btn-primary checkin-planned-btn" data-id="${visitor.VISITOR_ID}" data-name="${visitor.FULL_NAME}" data-person="${visitor.PERSON_TO_MEET}" data-purpose="${visitor.PURPOSE_OF_VISIT}" data-phone="${visitor.PHONE_NUMBER}">
+                            <i class="fas fa-check-circle"></i> Check In
+                        </button>
+                    </div>
+                `;
+                
+                plannedVisitorsList.appendChild(visitorCard);
+            });
+            
+            // Add event listeners to check-in buttons
+            document.querySelectorAll('.checkin-planned-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const visitorId = this.getAttribute('data-id');
+                    const fullName = this.getAttribute('data-name');
+                    const personToMeet = this.getAttribute('data-person');
+                    const purposeOfVisit = this.getAttribute('data-purpose');
+                    const phoneNumber = this.getAttribute('data-phone');
+                    
+                    // Fill the check-in form with planned visitor details
+                    document.getElementById('fullName').value = fullName;
+                    document.getElementById('personToMeet').value = personToMeet;
+                    document.getElementById('purposeOfVisit').value = purposeOfVisit;
+                    document.getElementById('phoneNumber').value = phoneNumber;
+                    
+                    // Add hidden field for visitor ID
+                    const existingHiddenField = document.getElementById('visitorIdField');
+                    if (existingHiddenField) {
+                        existingHiddenField.value = visitorId;
+                    } else {
+                        const hiddenField = document.createElement('input');
+                        hiddenField.type = 'hidden';
+                        hiddenField.id = 'visitorIdField';
+                        hiddenField.name = 'visitorId';
+                        hiddenField.value = visitorId;
+                        document.getElementById('checkinForm').appendChild(hiddenField);
+                    }
+                    
+                    // Switch to check-in tab
+                    document.querySelector('.tab-btn[data-tab="checkin"]').click();
+                });
+            });
+        }
           
         document.addEventListener('DOMContentLoaded', function() {
             // Update date and time display
@@ -790,8 +874,8 @@ async function loadPersonsToMeet() {
                     
                     if (tabId === 'current') {
                         loadCurrentVisitors();
-                    } else if (tabId === 'history') {
-                        loadVisitorHistory();
+                    } else if (tabId === 'planned') {
+                        loadPlannedVisitors();
                     }
                 });
             });
@@ -863,36 +947,41 @@ async function loadPersonsToMeet() {
             const checkinForm = document.getElementById('checkinForm');
             const checkinBtn = document.getElementById('checkinBtn');
     
-           checkinForm.addEventListener('submit', async function(e) {
-    e.preventDefault();
-    
-    const formData = new FormData();
-    formData.append('fullName', document.getElementById('fullName').value);
-    formData.append('personToMeet', document.getElementById('personToMeet').value);
-    formData.append('purposeOfVisit', document.getElementById('purposeOfVisit').value);
-    formData.append('phoneNumber', document.getElementById('phoneNumber').value); // Add this line
-    
-    if (visitorPhotoInput.files.length > 0) {
-        formData.append('visitorPhoto', visitorPhotoInput.files[0]);
-    }
+            checkinForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const formData = new FormData();
+                formData.append('fullName', document.getElementById('fullName').value);
+                formData.append('personToMeet', document.getElementById('personToMeet').value);
+                formData.append('purposeOfVisit', document.getElementById('purposeOfVisit').value);
+                formData.append('phoneNumber', document.getElementById('phoneNumber').value);
+                
+                const visitorIdField = document.getElementById('visitorIdField');
+                if (visitorIdField) {
+                    formData.append('visitorId', visitorIdField.value);
+                }
+                
+                if (visitorPhotoInput.files.length > 0) {
+                    formData.append('visitorPhoto', visitorPhotoInput.files[0]);
+                }
 
-    // Validate phone number format
-    const phoneNumber = document.getElementById('phoneNumber').value;
-    if (!/^\d{10}$/.test(phoneNumber)) {
-        showNotification('Please enter a valid 10-digit phone number', 'error');
-        return;
-    }
+                // Validate phone number format
+                const phoneNumber = document.getElementById('phoneNumber').value;
+                if (!/^\d{10}$/.test(phoneNumber)) {
+                    showNotification('Please enter a valid 10-digit phone number', 'error');
+                    return;
+                }
 
-    checkinBtn.disabled = true;
-    checkinBtn.innerHTML = '<span class="spinner"></span> Processing...';
-    
+                checkinBtn.disabled = true;
+                checkinBtn.innerHTML = '<span class="spinner"></span> Processing...';
+                
                 try {
                     const response = await fetch('/api/checkin', {
                         method: 'POST',
                         body: formData,
                         credentials: 'include'
                     });
-    
+
                     // Check if response is JSON
                     const contentType = response.headers.get('content-type');
                     let data;
@@ -902,7 +991,7 @@ async function loadPersonsToMeet() {
                         const text = await response.text();
                         throw new Error(text || 'Invalid server response');
                     }
-    
+
                     if (response.ok) {
                         showNotification(`${data.message} ${data.personToMeet} has been notified by email.`, 'success');
                         checkinForm.reset();
@@ -910,7 +999,19 @@ async function loadPersonsToMeet() {
                         photoPreview.src = '';
                         visitorPhotoInput.value = '';
                         
-                        document.querySelector('.tab-btn[data-tab="current"]').click();
+                        // Remove hidden field if it exists
+                        const hiddenField = document.getElementById('visitorIdField');
+                        if (hiddenField) {
+                            hiddenField.remove();
+                        }
+                        
+                        // Reload planned visitors if we checked in a planned visitor
+                        if (visitorIdField) {
+                            loadPlannedVisitors();
+                        }
+                        
+                        // Load current visitors
+                        loadCurrentVisitors();
                     } else {
                         throw new Error(data.message || 'Error checking in visitor');
                     }
@@ -943,6 +1044,12 @@ async function loadPersonsToMeet() {
     
             currentSearch.addEventListener('input', debounce(function() {
                 loadCurrentVisitors();
+            }));
+            
+            // Planned visitors search
+            const plannedSearch = document.getElementById('plannedSearch');
+            plannedSearch.addEventListener('input', debounce(function() {
+                loadPlannedVisitors();
             }));
     
             async function loadCurrentVisitors() {
@@ -1021,20 +1128,20 @@ async function loadPersonsToMeet() {
                     
                     const timeIn = visitor.TIME_IN ? new Date(visitor.TIME_IN).toLocaleString() : 'N/A';
                     
-                   visitorCard.innerHTML = `
-    ${photoHtml}
-    <div class="visitor-details">
-        <p><strong>Name:</strong> ${visitor.FULL_NAME || 'N/A'}</p>
-        <p><strong>Phone:</strong> ${visitor.PHONE_NUMBER || 'N/A'}</p>
-        <p><strong>Meeting:</strong> ${visitor.PERSON_TO_MEET || 'N/A'}</p>
-        <p><strong>Purpose:</strong> ${visitor.PURPOSE_OF_VISIT || 'N/A'}</p>
-        <p><strong>Time In:</strong> ${timeIn}</p>
-    </div>
-    <div class="visitor-actions">
-        <button class="btn btn-danger checkout-btn" data-id="${visitor.VISITOR_ID}">
-            <i class="fas fa-sign-out-alt"></i> Check Out
-        </button>
-    </div>
+                    visitorCard.innerHTML = `
+                        ${photoHtml}
+                        <div class="visitor-details">
+                            <p><strong>Name:</strong> ${visitor.FULL_NAME || 'N/A'}</p>
+                            <p><strong>Phone:</strong> ${visitor.PHONE_NUMBER || 'N/A'}</p>
+                            <p><strong>Meeting:</strong> ${visitor.PERSON_TO_MEET || 'N/A'}</p>
+                            <p><strong>Purpose:</strong> ${visitor.PURPOSE_OF_VISIT || 'N/A'}</p>
+                            <p><strong>Time In:</strong> ${timeIn}</p>
+                        </div>
+                        <div class="visitor-actions">
+                            <button class="btn btn-danger checkout-btn" data-id="${visitor.VISITOR_ID}">
+                                <i class="fas fa-sign-out-alt"></i> Check Out
+                            </button>
+                        </div>
                     `;
                     
                     currentVisitorsList.appendChild(visitorCard);
@@ -1073,7 +1180,6 @@ async function loadPersonsToMeet() {
                     if (response.ok) {
                         showNotification('Visitor checked out successfully!', 'success');
                         loadCurrentVisitors();
-                        loadVisitorHistory();
                     } else {
                         throw new Error(data.message || 'Error checking out visitor');
                     }
@@ -1088,223 +1194,6 @@ async function loadPersonsToMeet() {
                 }
             }
             
-            // Visitor history functionality
-            const historySearch = document.getElementById('historySearch');
-            const visitorHistoryList = document.getElementById('visitorHistoryList');
-            const historyEmptyState = document.getElementById('historyEmptyState');
-            const paginationControls = document.getElementById('paginationControls');
-    
-            let currentPage = 1;
-            const recordsPerPage = 10;
-    
-            historySearch.addEventListener('input', debounce(function() {
-                currentPage = 1;
-                loadVisitorHistory();
-            }));
-    
-            async function loadVisitorHistory() {
-                try {
-                    const query = historySearch.value.trim();
-                    let url = `/api/allvisitorspaginated?page=${currentPage}&limit=${recordsPerPage}`;
-                    
-                    if (query) {
-                        url = `/api/search?type=history&query=${encodeURIComponent(query)}`;
-                    }
-    
-                    const response = await fetch(url, { credentials: 'include' });
-                    
-                    // Check if response is JSON
-                    const contentType = response.headers.get('content-type');
-                    let data;
-                    if (contentType && contentType.includes('application/json')) {
-                        data = await response.json();
-                    } else {
-                        const text = await response.text();
-                        throw new Error(text || 'Invalid server response');
-                    }
-    
-                    // Handle both paginated and non-paginated responses
-                    let visitors = [];
-                    let totalPages = 1;
-                    
-                    if (data.records) {
-                        // Paginated response
-                        visitors = data.records;
-                        totalPages = data.totalPages || 1;
-                    } else if (Array.isArray(data)) {
-                        // Non-paginated response (search)
-                        visitors = data;
-                        paginationControls.style.display = 'none';
-                    } else {
-                        // Unexpected format
-                        throw new Error('Invalid data format from server');
-                    }
-    
-                    // Ensure visitors is an array
-                    if (!Array.isArray(visitors)) {
-                        visitors = [];
-                    }
-    
-                    if (visitors.length === 0) {
-                        visitorHistoryList.style.display = 'grid';
-                        visitorHistoryList.innerHTML = '';
-                        historyEmptyState.style.display = 'block';
-                        paginationControls.style.display = 'none';
-                    } else {
-                        visitorHistoryList.style.display = 'grid';
-                        historyEmptyState.style.display = 'none';
-                        renderVisitorHistory(visitors);
-                        
-                        // Only show pagination for paginated responses
-                        if (data.records) {
-                            paginationControls.style.display = 'flex';
-                            renderPaginationControls(totalPages, currentPage);
-                        }
-                    }
-                } catch (error) {
-                    console.error('Error loading visitor history:', error);
-                    showNotification('Error loading data. Please try again or login.', 'error');
-                    
-                    // If unauthorized, redirect to login
-                    if (error.message.includes('login') || error.message.includes('<!DOCTYPE')) {
-                        window.location.href = '/';
-                    }
-                }
-            }
-    
-            function renderVisitorHistory(visitors) {
-                visitorHistoryList.innerHTML = '';
-                
-                // Double check that visitors is an array
-                if (!Array.isArray(visitors)) {
-                    console.error('renderVisitorHistory: Expected array but got', visitors);
-                    historyEmptyState.style.display = 'block';
-                    visitorHistoryList.style.display = 'none';
-                    return;
-                }
-                
-                visitors.forEach(visitor => {
-                    const visitorCard = document.createElement('div');
-                    visitorCard.className = 'visitor-card';
-                    
-                    let photoHtml = '';
-                    if (visitor.VISITOR_PHOTO_PATH) {
-                        photoHtml = `<img src="${visitor.VISITOR_PHOTO_PATH}" class="visitor-photo" alt="Visitor photo">`;
-                    } else {
-                        photoHtml = `<div style="height: 150px; display: flex; align-items: center; justify-content: center; background: #f0f0f0; border-radius: 8px; margin-bottom: 1rem;">
-                                        <i class="fas fa-user" style="font-size: 2rem; color: #ccc;"></i>
-                                    </div>`;
-                    }
-                    
-                    const timeIn = visitor.TIME_IN ? new Date(visitor.TIME_IN).toLocaleString() : 'N/A';
-                    let timeOut = 'Not checked out';
-                    let statusBadge = '<span class="badge badge-warning">Checked In</span>';
-                    
-                    if (visitor.TIME_OUT) {
-                        timeOut = new Date(visitor.TIME_OUT).toLocaleString();
-                        statusBadge = '<span class="badge badge-success">Checked Out</span>';
-                    }
-                    
-                  visitorCard.innerHTML = `
-    ${photoHtml}
-    <div class="visitor-details">
-        <p><strong>Name:</strong> ${visitor.FULL_NAME || 'N/A'}</p>
-        <p><strong>Phone:</strong> ${visitor.PHONE_NUMBER || 'N/A'}</p>
-        <p><strong>Meeting:</strong> ${visitor.PERSON_TO_MEET || 'N/A'}</p>
-        <p><strong>Purpose:</strong> ${visitor.PURPOSE_OF_VISIT || 'N/A'}</p>
-        <p><strong>Time In:</strong> ${timeIn}</p>
-        <p><strong>Time Out:</strong> ${timeOut}</p>
-        ${statusBadge}
-    </div>
-                    `;
-                    
-                    visitorHistoryList.appendChild(visitorCard);
-                });
-            }
-    
-            function renderPaginationControls(totalPages, currentPageNum) {
-                paginationControls.innerHTML = '';
-                
-                const prevBtn = document.createElement('button');
-                prevBtn.className = 'page-btn';
-                prevBtn.innerHTML = '<i class="fas fa-chevron-left"></i>';
-                prevBtn.disabled = currentPageNum === 1;
-                prevBtn.addEventListener('click', function() {
-                    if (currentPage > 1) {
-                        currentPage--;
-                        loadVisitorHistory();
-                    }
-                });
-                paginationControls.appendChild(prevBtn);
-                
-                const maxVisiblePages = 5;
-                let startPage = Math.max(1, currentPageNum - Math.floor(maxVisiblePages / 2));
-                let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
-                
-                if (endPage - startPage + 1 < maxVisiblePages) {
-                    startPage = Math.max(1, endPage - maxVisiblePages + 1);
-                }
-                
-                if (startPage > 1) {
-                    const firstBtn = document.createElement('button');
-                    firstBtn.className = 'page-btn';
-                    firstBtn.textContent = '1';
-                    firstBtn.addEventListener('click', function() {
-                        currentPage = 1;
-                        loadVisitorHistory();
-                    });
-                    paginationControls.appendChild(firstBtn);
-                    
-                    if (startPage > 2) {
-                        const ellipsis = document.createElement('span');
-                        ellipsis.textContent = '...';
-                        ellipsis.style.padding = '0.5rem 0.8rem';
-                        paginationControls.appendChild(ellipsis);
-                    }
-                }
-                
-                for (let i = startPage; i <= endPage; i++) {
-                    const pageBtn = document.createElement('button');
-                    pageBtn.className = `page-btn ${i === currentPageNum ? 'active' : ''}`;
-                    pageBtn.textContent = i;
-                    pageBtn.addEventListener('click', function() {
-                        currentPage = i;
-                        loadVisitorHistory();
-                    });
-                    paginationControls.appendChild(pageBtn);
-                }
-                
-                if (endPage < totalPages) {
-                    if (endPage < totalPages - 1) {
-                        const ellipsis = document.createElement('span');
-                        ellipsis.textContent = '...';
-                        ellipsis.style.padding = '0.5rem 0.8rem';
-                        paginationControls.appendChild(ellipsis);
-                    }
-                    
-                    const lastBtn = document.createElement('button');
-                    lastBtn.className = 'page-btn';
-                    lastBtn.textContent = totalPages;
-                    lastBtn.addEventListener('click', function() {
-                        currentPage = totalPages;
-                        loadVisitorHistory();
-                    });
-                    paginationControls.appendChild(lastBtn);
-                }
-                
-                const nextBtn = document.createElement('button');
-                nextBtn.className = 'page-btn';
-                nextBtn.innerHTML = '<i class="fas fa-chevron-right"></i>';
-                nextBtn.disabled = currentPageNum === totalPages;
-                nextBtn.addEventListener('click', function() {
-                    if (currentPage < totalPages) {
-                        currentPage++;
-                        loadVisitorHistory();
-                    }
-                });
-                paginationControls.appendChild(nextBtn);
-            }
-    
             function showNotification(message, type) {
                 const notification = document.createElement('div');
                 notification.className = `notification ${type === 'error' ? 'error' : ''}`;
@@ -1326,7 +1215,7 @@ async function loadPersonsToMeet() {
     
             // Load initial data
             loadCurrentVisitors();
-            loadVisitorHistory();
+            loadPlannedVisitors();
         });
     </script>
 </body>

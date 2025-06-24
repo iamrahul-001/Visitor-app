@@ -111,7 +111,6 @@ app.get('/', (req, res) => {
 // Authentication Middleware
 function checkAuth(req, res, next) {
   const publicPaths = ['/', '/login', '/uploads', '/api/auth/status', '/api/persons-to-meet'];
-  // Corrected line: Added missing closing parenthesis after path.startsWith(path)
   if (publicPaths.some(path => req.path.startsWith(path))) {
     return next();
   }
@@ -157,6 +156,29 @@ app.get('/api/persons-to-meet', async (req, res) => {
         res.json(persons);
     } catch (err) {
         console.error('Error fetching persons to meet:', err);
+        res.status(500).json({ error: 'Database error', details: err.message });
+    }
+});
+
+// Get Planned Visitors
+app.get('/api/planned-visitors', async (req, res) => {
+    try {
+        const sql = `
+            SELECT VISITOR_ID, FULL_NAME, PERSON_TO_MEET, PURPOSE_OF_VISIT, PHONE_NUMBER,
+                   TO_CHAR(PLANNED_DATE, 'YYYY-MM-DD HH24:MI:SS') AS PLANNED_DATE,
+                   TO_CHAR(TIME_IN, 'YYYY-MM-DD HH24:MI:SS') AS TIME_IN,
+                   VISITOR_PHOTO_PATH
+            FROM VISITORS
+            WHERE VISITOR_TYPE = 'P' 
+              AND TIME_IN IS NULL
+              AND TRUNC(PLANNED_DATE) = TRUNC(SYSDATE)
+            ORDER BY PLANNED_DATE ASC
+        `;
+        
+        const result = await executeSql(sql, [], { outFormat: oracledb.OUT_FORMAT_OBJECT });
+        res.json(result.rows || []);
+    } catch (err) {
+        console.error('Error fetching planned visitors:', err);
         res.status(500).json({ error: 'Database error', details: err.message });
     }
 });
@@ -253,12 +275,22 @@ async function sendNotificationEmail({ visitorName, personToMeet, purpose, phone
     throw emailError;
   }
 }
-// Visitor Check-In
+
 app.post('/api/checkin', upload.single('visitorPhoto'), async (req, res) => {
-  const { fullName, personToMeet, purposeOfVisit, phoneNumber } = req.body; // Added phoneNumber
+  const { fullName, personToMeet, purposeOfVisit, phoneNumber, visitorId } = req.body;
   const visitorPhotoPath = req.file ? `/uploads/${req.file.filename}` : null;
 
-  if (!fullName || !purposeOfVisit || !personToMeet || !phoneNumber) { // Added phoneNumber validation
+  // Add validation and logging
+  console.log('Check-in request received:', {
+    fullName,
+    personToMeet,
+    purposeOfVisit,
+    phoneNumber,
+    visitorId,
+    hasPhoto: !!req.file
+  });
+
+  if (!fullName || !purposeOfVisit || !personToMeet || !phoneNumber) {
     if (req.file) {
       fs.unlink(req.file.path, (err) => {
         if (err) console.error('Error deleting uploaded file:', err);
@@ -267,51 +299,90 @@ app.post('/api/checkin', upload.single('visitorPhoto'), async (req, res) => {
     return res.status(400).json({ message: 'Missing required fields' });
   }
 
-  const sql = `INSERT INTO VISITORS (FULL_NAME, PERSON_TO_MEET, PURPOSE_OF_VISIT, PHONE_NUMBER, VISITOR_PHOTO_PATH)
-               VALUES (:fullName, :personToMeet, :purposeOfVisit, :phoneNumber, :visitorPhotoPath)
-               RETURNING VISITOR_ID INTO :visitorId`;
-
-  const binds = {
-    fullName,
-    personToMeet,
-    purposeOfVisit,
-    phoneNumber, // Added phoneNumber
-    visitorPhotoPath,
-    visitorId: { type: oracledb.NUMBER, dir: oracledb.BIND_OUT }
-  };
+  let sql, binds;
+  
+  if (visitorId) {
+    // Check-in for planned visitor - with additional logging
+    console.log(`Processing planned visitor check-in for ID: ${visitorId}`);
+    
+    sql = `UPDATE VISITORS 
+           SET TIME_IN = SYSTIMESTAMP, 
+               VISITOR_PHOTO_PATH = :visitorPhotoPath 
+           WHERE VISITOR_ID = :visitorId
+           RETURNING VISITOR_ID, TIME_IN INTO :updatedVisitorId, :updatedTimeIn`;
+    
+    binds = {
+      visitorPhotoPath,
+      visitorId: Number(visitorId), // Ensure it's a number
+      updatedVisitorId: { type: oracledb.NUMBER, dir: oracledb.BIND_OUT },
+      updatedTimeIn: { type: oracledb.DATE, dir: oracledb.BIND_OUT }
+    };
+  } else {
+    // New visitor check-in
+    sql = `INSERT INTO VISITORS (FULL_NAME, PERSON_TO_MEET, PURPOSE_OF_VISIT, PHONE_NUMBER, 
+              VISITOR_PHOTO_PATH, VISITOR_TYPE, TIME_IN)
+           VALUES (:fullName, :personToMeet, :purposeOfVisit, :phoneNumber, 
+              :visitorPhotoPath, 'N', SYSTIMESTAMP)
+           RETURNING VISITOR_ID, TIME_IN INTO :visitorId, :timeIn`;
+    
+    binds = {
+      fullName,
+      personToMeet,
+      purposeOfVisit,
+      phoneNumber,
+      visitorPhotoPath,
+      visitorId: { type: oracledb.NUMBER, dir: oracledb.BIND_OUT },
+      timeIn: { type: oracledb.DATE, dir: oracledb.BIND_OUT }
+    };
+  }
 
   const options = { autoCommit: true };
 
   try {
     const result = await executeSql(sql, binds, options);
-    const visitorId = result.outBinds.visitorId[0];
     
+    // Enhanced logging
+   // console.log('Database operation result:', result);
+    
+    const visitorIdOut = visitorId ? result.outBinds.updatedVisitorId[0] : result.outBinds.visitorId[0];
+    const timeIn = visitorId ? result.outBinds.updatedTimeIn[0] : result.outBinds.timeIn[0];
+    
+    console.log(`Visitor ${visitorIdOut} checked in at ${timeIn}`);
+
     await sendNotificationEmail({
       visitorName: fullName,
       personToMeet,
       purpose: purposeOfVisit,
-      phoneNumber, // Added phoneNumber
-      timeIn: new Date().toLocaleString(),
+      phoneNumber,
+      timeIn: timeIn.toLocaleString(),
       photoUrl: visitorPhotoPath,
       req
     });
 
     res.status(201).json({ 
       message: 'Visitor checked in successfully!', 
-      visitorId, 
+      visitorId: visitorIdOut, 
       visitorPhotoPath,
-      personToMeet
+      personToMeet,
+      timeIn // Include timeIn in response for debugging
     });
   } catch (err) {
+    console.error('Error during check-in:', err);
+    
     if (req.file) {
       fs.unlink(req.file.path, (unlinkErr) => {
         if (unlinkErr) console.error('Error deleting uploaded file after DB error:', unlinkErr);
       });
     }
-    res.status(500).json({ message: 'Error checking in visitor.', error: err.message });
+    
+    res.status(500).json({ 
+      message: 'Error checking in visitor.', 
+      error: err.message,
+      sql: sql, // Include SQL in response for debugging
+      binds: binds // Include binds in response for debugging
+    });
   }
 });
-
 // Check-Out Visitor
 app.put('/api/checkout/:id', async (req, res) => {
   const visitorId = req.params.id;
@@ -339,7 +410,8 @@ app.get('/api/current', async (req, res) => {
        TO_CHAR(TIME_IN, 'YYYY-MM-DD HH24:MI:SS') AS TIME_IN, 
        VISITOR_PHOTO_PATH
        FROM VISITORS
-       WHERE TIME_OUT IS NULL
+       WHERE TIME_OUT IS NULL 
+       AND TIME_IN IS NOT NULL
        ORDER BY TIME_IN DESC`,
       [],
       { outFormat: oracledb.OUT_FORMAT_OBJECT }
@@ -354,96 +426,44 @@ app.get('/api/current', async (req, res) => {
     });
   }
 });
+
 // Search Visitors
 app.get('/api/search', async (req, res) => {
-  const { type, query } = req.query;
+    const { type, query } = req.query;
 
-  if (!type || !query) {
-    return res.status(400).json({ message: 'Missing search parameters' });
-  }
-
-  try {
-    let sql;
-    if (type === 'current') {
-      sql = `SELECT * FROM VISITORS
-              WHERE TIME_OUT IS NULL
-              AND (UPPER(FULL_NAME) LIKE UPPER(:query)
-              OR UPPER(PERSON_TO_MEET) LIKE UPPER(:query)
-              OR UPPER(PURPOSE_OF_VISIT) LIKE UPPER(:query))`;
-    } else {
-      sql = `SELECT * FROM VISITORS
-              WHERE UPPER(FULL_NAME) LIKE UPPER(:query)
-              OR UPPER(PERSON_TO_MEET) LIKE UPPER(:query)
-              OR UPPER(PURPOSE_OF_VISIT) LIKE UPPER(:query)`;
+    if (!type || !query) {
+        return res.status(400).json({ message: 'Missing search parameters' });
     }
 
-    const binds = { query: `%${query}%` };
-    const options = { outFormat: oracledb.OUT_FORMAT_OBJECT };
-    const result = await executeSql(sql, binds, options);
+    try {
+        let sql;
+        if (type === 'current') {
+            sql = `SELECT * FROM VISITORS
+                  WHERE TIME_OUT IS NULL AND VISITOR_TYPE = 'N'
+                  AND (UPPER(FULL_NAME) LIKE UPPER(:query)
+                  OR UPPER(PERSON_TO_MEET) LIKE UPPER(:query)
+                  OR UPPER(PURPOSE_OF_VISIT) LIKE UPPER(:query))`;
+        } else if (type === 'planned') {
+            sql = `SELECT * FROM VISITORS
+                  WHERE VISITOR_TYPE = 'P' AND TIME_IN IS NULL
+                  AND TRUNC(PLANNED_DATE) = TRUNC(SYSDATE)
+                  AND (UPPER(FULL_NAME) LIKE UPPER(:query)
+                  OR UPPER(PERSON_TO_MEET) LIKE UPPER(:query)
+                  OR UPPER(PURPOSE_OF_VISIT) LIKE UPPER(:query))`;
+        } else {
+            return res.status(400).json({ message: 'Invalid search type' });
+        }
 
-    res.json(result.rows || []);
-  } catch (err) {
-    console.error('Search error:', err);
-    res.status(500).json({ message: 'Error performing search', error: err.message });
-  }
+        const binds = { query: `%${query}%` };
+        const options = { outFormat: oracledb.OUT_FORMAT_OBJECT };
+        const result = await executeSql(sql, binds, options);
+
+        res.json(result.rows || []);
+    } catch (err) {
+        console.error('Search error:', err);
+        res.status(500).json({ message: 'Error performing search', error: err.message });
+    }
 });
-
-app.get('/api/allvisitorspaginated', async (req, res) => {
-  const page = parseInt(req.query.page) || 1;
-  const limit = parseInt(req.query.limit) || 10;
-  const offset = (page - 1) * limit;
-
-  try {
-    const countSql = `SELECT COUNT(*) AS total FROM VISITORS`;
-    const countResult = await executeSql(countSql, [], { outFormat: oracledb.OUT_FORMAT_OBJECT });
-    const totalRecords = countResult.rows[0].TOTAL;
-
-    const paginatedSql = `
-      SELECT VISITOR_ID, FULL_NAME, PERSON_TO_MEET, 
-             PURPOSE_OF_VISIT, PHONE_NUMBER,
-             TO_CHAR(TIME_IN, 'YYYY-MM-DD HH24:MI:SS') AS TIME_IN,
-             TO_CHAR(TIME_OUT, 'YYYY-MM-DD HH24:MI:SS') AS TIME_OUT, 
-             VISITOR_PHOTO_PATH
-      FROM (
-        SELECT a.*, ROWNUM rnum 
-        FROM (
-          SELECT * FROM VISITORS 
-          ORDER BY TIME_IN DESC
-        ) a
-        WHERE ROWNUM <= :endRow
-      )
-      WHERE rnum >= :startRow
-    `;
-    
-    const binds = {
-      startRow: offset + 1,
-      endRow: offset + limit
-    };
-    
-    const options = { outFormat: oracledb.OUT_FORMAT_OBJECT };
-    const paginatedResult = await executeSql(paginatedSql, binds, options);
-
-    res.json({
-      records: paginatedResult.rows || [],
-      totalRecords: totalRecords,
-      currentPage: page,
-      recordsPerPage: limit,
-      totalPages: Math.ceil(totalRecords / limit)
-    });
-  } catch (err) {
-    console.error('Error fetching paginated visitors:', err);
-    res.status(500).json({ 
-      error: 'Database error',
-      details: err.message,
-      records: [],
-      totalRecords: 0,
-      currentPage: 1,
-      recordsPerPage: limit,
-      totalPages: 0
-    });
-  }
-});
-
 
 // Serve Frontend
 app.get('/frontend.html', (req, res) => {
