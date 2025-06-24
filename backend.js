@@ -105,7 +105,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/uploads', express.static(uploadsDir));
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'login.html'));
+  res.sendFile(path.join(__dirname, 'frontend.html'));
 });
 
 // Authentication Middleware
@@ -476,7 +476,7 @@ async function startServer() {
     await initializeDbPool();
     app.listen(PORT, '0.0.0.0', () => {
       console.log(`Server running on port ${PORT}`);
-      console.log(`Login page: http://localhost:${PORT}/`);
+      console.log(`Login page: http://system:${PORT}/`);
     });
   } catch (err) {
     console.error('Failed to start server:', err);
